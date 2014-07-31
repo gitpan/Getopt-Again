@@ -13,8 +13,8 @@ my $build = Module::Build->new(
     },
     meta_merge => {
         resources => {
-            repository  => 'http://github.com/exodist/Fennec',
-            bugtracker  => 'http://github.com/exodist/Fennec/issues',
+            repository  => 'http://github.com/exodist/Getopt-Again',
+            bugtracker  => 'http://github.com/exodist/Getopt-Again/issues',
         },
     },
 );

@@ -5,7 +5,7 @@ use warnings;
 use Carp qw/croak/;
 use Scalar::Util qw/reftype/;
 
-our $VERSION = '0.000001';
+our $VERSION = '0.000002';
 
 my %DEFAULTS = (
     ALL => {default => undef, list => 0, example => '', required => 0, process => undef},
