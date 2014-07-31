@@ -1,0 +1,269 @@
+NAME
+    Getopt::Again - Yet another attempt at a universal Getopt tool.
+
+DESCRIPTION
+    Getopt tool that takes short form "-abc" and/or long form "--alpha"
+    options. Options may be boolen, or accept values. Values can be
+    specified via "--foo val" or "--foo=val" forms. Can also use a regex to
+    slurp up matching options. Ability to auto-generate usage and help
+    strings for you when desired.
+
+ANOTHER GETOPT TOOL!!!!
+    Yeah... Sorry about that. Here is a relevant XKCD:
+    <http://xkcd.com/927/>.
+
+    I have not yet found a Getopt module that works the way I would like. It
+    may exist, but the author is doing a poor job of reaching me and my
+    searches have failed.
+
+    I went a long time refusing to add yet more clutter to the Getopt
+    namespace, but I am tired of writing custom parsing for options every
+    time I write a script. So here it is, my way, and I don't care if nobody
+    ever uses it, I won't force you.
+
+SYNOPSYS
+  SCRIPT
+        use Getopt::Again enable_help => 1; # Default is 0
+
+        opt_bools  qw/alpha beta/;  # Quickly define some boolean options
+        opt_lists  qw/gamma zeta/;  # Quickly define some options that accept multiple args
+        opt_params qw/foo bar/;     # Quickly define some options that accept a single arg
+        opt_paths  qw/origin dest/; # Quickly define some options that take directory paths
+        opt_files  qw/config/;      # Quickly define some options that take file paths
+
+        # All arguments to opt_add are optional except the name.
+        opt_add my_opt => (
+            type        => 'string',           # Or 'bool', 'regex', 'path', 'file'
+            list        => 1,                  # True to take multiple values
+            default     => 'stuff',            # Default value
+            example     => " 'a string'",      # Example value, for help/usage
+            alias       => [ 'the_opt', 'm' ], # Alternate names
+            process     => sub { ... },        # Can also be a validation regex
+            description => "My option ..."     # For help/usage
+            split_on    => ",",                # Split values (list only)
+            regex       => qr/^foo-(.+)$/,     # Match options like this, use the capture for value
+        );
+
+        my $usage = opt_usage();
+        my $help  = opt_help();
+
+        # Get the options and args from @ARGV. @ARGV is not altered
+        my (%opts, @args) = opt_parse(@ARGV);
+
+  OOP
+        use Getopt::Again();
+
+        my $ga = Getopt::Again->new(enable_help => 1);
+
+        $ga->add('my_opt' => (
+            type        => 'string',           # Or 'bool', 'regex', 'path', 'file'
+            list        => 1,                  # True to take multiple values
+            default     => 'stuff',            # Default value
+            example     => " 'a string'",      # Example value, for help/usage
+            alias       => [ 'the_opt', 'm' ], # Alternate names
+            process     => sub { ... },        # Can also be a validation regex
+            description => "My option ..."     # For help/usage
+            split_on    => ",",                # Split values (list only)
+            regex       => qr/^foo-(.+)$/,     # Match options like this, use the capture for value
+        ));
+
+        my $usage = $ga->usage_string();
+        my $help  = $ga->help_string();
+
+        # Get the options and args from @ARGV, @ARGV is not altered
+        my (%opts, @args) = $ga->parse(@ARGV);
+
+PARSING RULES
+    A single dash denotes 1-character options, so "-xyz" is seen as the x,
+    y, and z options.
+            command -xyz
+
+            command -x -y -z
+
+            command --xerxes --yolk --zebra
+
+    The final option in a set of single dash options may have an argument.
+            command -xf thing
+
+            command -xyzf thing
+
+    Double dash denotes long form "--foo" is seen as the 'foo' option.
+            command --thing
+
+    Options that accept arguments may take the "--opt=val" or "--opt val"
+    forms.
+            command --thing=val
+
+            command --thing val
+
+    Options that can have a list of values may specify a delimiter, and/or
+    can be listed multiple times.
+            command --thing x --thing y --thing z
+
+            command --thing x,y,z
+
+            command --thing x.y.z
+
+    When it is not ambiguous, you may use the first character of the long
+    form in a short form.
+        These work:
+
+            command --xerxes
+            command -x
+
+        This would not:
+
+            command --xerxes
+            command --xandu
+            command -x # Nope! ambiguous (unless -x is defined directly)
+
+    End of params is "--" as expected, nothing after this will be parsed,
+    instead they are added to the list of arguments.
+            command -xyz -- --this_is_not_an_opt --this_is_an_arg
+
+EXPORTS
+    $ga = opt_meta()
+        Get the underlying Getopt::Again object.
+
+    opt_bools(qw/awake alive/)
+        Quickly define some boolean options.
+
+    opt_lists(qw/friends family/)
+        Quickly define some list options.
+
+    opt_params(qw/name age/)
+        Quickly define some options that take strings.
+
+    opt_paths(qw/origin dest/)
+        Quickly define some options that take paths (they must exist).
+
+    opt_files(qw/input config/)
+        Quickly define some options that take files (they must exist).
+
+    opt_add(NAME, %OPTIONS)
+        Add an option.
+
+    $usage = opt_usage()
+    opt_usage($set)
+        Get or set the usage string (returns "$0 $string", do not include $0
+        when setting).
+
+    $help = opt_help()
+        Get the help string.
+
+    ($opts, $args) = opt_parse(...)
+        Parse a parameters (@ARGV is the usual argument).
+
+        An exception will be thrown if an unknown option is specified.
+
+        $opts is a hashref, $args is an arrayref.
+
+    opt_use_help()
+        Enable the --help and -h options.
+
+OPTION PROPERTIES
+    type
+        Values may be one of: 'string', 'bool', 'regex', 'file', 'path'.
+
+        If none is specified it is guessed. Names with more than 1 character
+        default to string, named with 1 character only default to bool.
+
+    list
+        True or false. When true the option will always be an arrayref
+        containing 0 or more values.
+
+    default
+        Specify the default value when none was specified. For bools this
+        gets normalized to true or false. For lists the default is a new
+        empty array.
+
+    example
+        Example for documentation, usually an example value prefixed with
+        either a space or equal sign:
+
+            example => ' foo',
+
+        or
+
+            example => '=foo',
+
+    process
+        Post-processing on the value. If this is a regex than an exception
+        will be thrown for any value that does not match.
+
+        The value may also be a coderef. For the coderef $_ will be set to
+        the value being processed. The value will also be passed in as the
+        only argument. Whatever the coderef returns will replace the value,
+        so this is a hook to allow you to modify the value.
+
+    description
+        Provide a long description of the option for the help string.
+
+    split_on
+        Specify a delimiter for list options.
+
+    regex
+        Specify a regex to be used to identify parameters. Use this if you
+        want something like "enable-*" to be captured.
+
+            list  => 1,
+            regex => qr/^enable-(.*)$/,
+
+        This will match all the following:
+
+            --enable-food
+            --enable-protection
+
+        In these cases the value will be set to the first capture group, so
+        in this case:
+
+            [
+                'food',
+                'protection'
+            ]
+
+        If there is no capture $1, then the remaining string after the match
+        $' will be used.
+
+OBJECT METHODS
+    $ga->opt_spec($name)
+        Get the specification for an option.
+
+    $ga->add($name => %properties)
+        Add an option
+
+    ($opts, $args) = $ga->parse(@ARGV)
+        Parse a parameters (@ARGV is the usual argument).
+
+        An exception will be thrown if an unknown option is specified.
+
+        $opts is a hashref, $args is an arrayref.
+
+    $ga->usage_string
+        Get or set the usage string (returns "$0 $string", do not include $0
+        when setting).
+
+    $ga->help_string
+        Get the help string
+
+    $ga->enable_help
+        Enable the help ("--help" and "-h") tools.
+
+SEE ALSO
+    Everything in the massive Getopt namespace.
+
+    On second thought, don't, you do not have that much time.
+
+AUTHORS
+    Chad Granum exodist7@gmail.com
+
+COPYRIGHT
+    Copyright (C) 2014 Chad Granum
+
+    Getopt-Again is free software; Standard perl license (GPL and Artistic).
+
+    Getopt-Again is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the license for
+    more details.
+

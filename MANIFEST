@@ -1,0 +1,7 @@
+Build.PL
+lib/Getopt/Again.pm
+MANIFEST			This list of files
+t/acceptance.t
+README
+META.yml
+META.json
