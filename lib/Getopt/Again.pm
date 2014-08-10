@@ -5,7 +5,7 @@ use warnings;
 use Carp qw/croak/;
 use Scalar::Util qw/reftype/;
 
-our $VERSION = '0.000002';
+our $VERSION = '0.000003';
 
 my %DEFAULTS = (
     ALL => {default => undef, list => 0, example => '', required => 0, process => undef},
@@ -343,6 +343,26 @@ sub usage_string {
     return "$0 $self->{usage_string}";
 }
 
+sub opt_help_string {
+    my $self = shift;
+    my ($name) = @_;
+
+    my $names = $self->_reversed_opt_cache;
+
+    my $opt = $self->opt_spec($name) || die "Invalid option: $name";
+    my $out = "  $name ($opt->{type})\n";
+    for my $alias (@{$names->{$name}}) {
+        $out .= "   " . (length($alias) > 1 ? '--' : '-') . $alias . $opt->{example} . "\n";
+    }
+    if ($opt->{regex}) {
+        $out .= "   --$opt->{regex}\n"
+    }
+    $out .= $opt->{description} . "\n" if $opt->{description};
+    $out .= "\n";
+
+    return $out;
+}
+
 sub help_string {
     my $self = shift;
     my $names = $self->_reversed_opt_cache;
@@ -351,16 +371,7 @@ sub help_string {
 
     my $out = "";
     for my $name (sort keys %$names) {
-        my $opt = $self->opt_spec($name);
-        $out .= "  $name ($opt->{type})\n";
-        for my $alias (@{$names->{$name}}) {
-            $out .= "   " . (length($alias) > 1 ? '--' : '-') . $alias . $opt->{example} . "\n";
-        }
-        if ($opt->{regex}) {
-            $out .= "   --$opt->{regex}\n"
-        }
-        $out .= $opt->{description} . "\n" if $opt->{description};
-        $out .= "\n";
+        $out .= $self->opt_help_string($name);
     }
 
     return $out;

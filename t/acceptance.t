@@ -140,81 +140,16 @@ BEGIN {
     opt_usage("foo");
     is(opt_usage(), "$0 foo", "set usage");
 
-    is(opt_help(), <<'    EOT', "Got help");
+    is(opt_meta()->opt_help_string('alpha'), <<'    EOT', "got help for alpha");
   alpha (string)
    --alpha "foo"
    -a "foo"
 
-  bar (bool)
-   --bar
-
-  bat (string)
-   --bat "foo"
-
-  baz (string)
-   --baz "foo"
-
-  beta (string)
-   --beta "foo"
-
-  comp (string)
-   --comp "foo"
-   --compute "foo"
-   --stringy "foo"
-Computate this
- AND THESE
-Oh... or those!
-
-  config (file)
-   --config "/foo/bar.txt"
-
-  dest (path)
-   --dest "/foo/bar/"
-   -d "/foo/bar/"
-
-  foo (bool)
-   --foo
-   -f
-
-  help (bool)
-   --help
-   -h
-
-  ixe (bool)
-   --ixe
-   -i
-
-  laz (bool)
-   --laz
-   -l
-
-  more_stuff (string)
-   --more_stuff "foo"
-   -m "foo"
-
-  origin (path)
-   --origin "/foo/bar/"
-   -o "/foo/bar/"
-
-  state (file)
-   --state "/foo/bar.txt"
-
-  stuff (string)
-   --stuff "foo"
-
-  zapa (regex)
-   --zapa
-   --(?^:^zapa-(.+)$)
-
-  zapb (regex)
-   --zapb
-   --(?^:^zapb-(.+)$)
-
-  zapc (regex)
-   --zapc
-   --(?^:^zapc-)
-
     EOT
+
+    like(opt_help(), qr/alpha \(string\)/, "got alpha");
+    like(opt_help(), qr/dest \(path\)/, "got dest");
+    like(opt_help(), qr/zapa \(regex\)/, "got zapa");
 }
 
 done_testing;

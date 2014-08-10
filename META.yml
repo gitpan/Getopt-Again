@@ -15,11 +15,11 @@ name: Getopt-Again
 provides:
   Getopt::Again:
     file: lib/Getopt/Again.pm
-    version: '0.000002'
+    version: '0.000003'
 requires:
   Test::Simple: '0.88'
 resources:
   bugtracker: http://github.com/exodist/Getopt-Again/issues
   license: http://dev.perl.org/licenses/
   repository: http://github.com/exodist/Getopt-Again
-version: '0.000002'
+version: '0.000003'
